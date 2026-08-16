@@ -1,0 +1,14 @@
+*.iml
+.gradle/
+.idea/
+local.properties
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+app/build/
+app/release/
+*.jks
+jks_pw.txt
+__pycache__/
+*.pyc
