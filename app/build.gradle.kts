@@ -12,8 +12,29 @@ android {
         applicationId = "com.dakbit.fortune"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
+    }
+
+    buildTypes {
+        debug {
+            // Google 공식 테스트 ID
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+            buildConfigField(
+                "String",
+                "ADMOB_INTERSTITIAL_UNIT_ID",
+                "\"ca-app-pub-3940256099942544/1033173712\"",
+            )
+        }
+        release {
+            // 실제 AdMob ID (달빛 운세)
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-2337539333759239~6358722846"
+            buildConfigField(
+                "String",
+                "ADMOB_INTERSTITIAL_UNIT_ID",
+                "\"ca-app-pub-2337539333759239/1816842608\"",
+            )
+        }
     }
 
     buildFeatures {
@@ -46,6 +67,7 @@ dependencies {
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    implementation("com.google.android.gms:play-services-ads:24.2.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

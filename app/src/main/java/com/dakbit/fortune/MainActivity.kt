@@ -99,6 +99,7 @@ class MainActivity : ComponentActivity() {
 
         val profileStore = ProfileStore(this)
         val engine = FortuneEngine(FortuneDataSource(this))
+        val interstitialAdManager = InterstitialAdManager(this).also { it.preload() }
 
         setContent {
             val tick = resumeTick
@@ -123,6 +124,7 @@ class MainActivity : ComponentActivity() {
                                 profile = current,
                                 result = result,
                                 openTodaySignal = todaySignal,
+                                interstitialAdManager = interstitialAdManager,
                                 onProfileChanged = {
                                     profileStore.save(it)
                                     profile = it
@@ -359,6 +361,7 @@ private fun FortuneApp(
     profile: UserProfile,
     result: FortuneResult,
     openTodaySignal: Int,
+    interstitialAdManager: InterstitialAdManager,
     onProfileChanged: (UserProfile) -> Unit,
 ) {
     var selectedTab by remember { mutableStateOf(AppTab.TODAY) }
@@ -391,7 +394,15 @@ private fun FortuneApp(
                 AppTab.entries.forEach { tab ->
                     NavigationBarItem(
                         selected = selectedTab == tab,
-                        onClick = { selectedTab = tab },
+                        onClick = {
+                            if (tab == AppTab.SETTINGS) {
+                                selectedTab = tab
+                            } else {
+                                interstitialAdManager.showThenNavigate {
+                                    selectedTab = tab
+                                }
+                            }
+                        },
                         icon = { Text(tab.emoji, fontWeight = FontWeight.Bold) },
                         label = { Text(tab.label) },
                         colors = NavigationBarItemDefaults.colors(
@@ -790,7 +801,7 @@ private fun SettingsScreen(
             }
         }
         item {
-            Text("달빛 운세 1.0.0", color = Muted, style = MaterialTheme.typography.bodyMedium)
+            Text("달빛 운세 1.0.1", color = Muted, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
