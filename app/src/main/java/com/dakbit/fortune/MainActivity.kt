@@ -106,15 +106,20 @@ class MainActivity : ComponentActivity() {
             val todaySignal = openTodaySignal
             DakbitTheme {
                 var profile by remember { mutableStateOf(profileStore.load()) }
+                var enteredFortune by remember { mutableStateOf(false) }
                 val today = remember(tick) { LocalDate.now() }
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     MoonlitBackground {
-                        if (profile == null) {
+                        if (!enteredFortune) {
                             ProfileSetupScreen(
-                                existing = null,
-                                onSave = {
-                                    profileStore.save(it)
-                                    profile = it
+                                existing = profile,
+                                asEntryGate = true,
+                                onSave = { saved ->
+                                    profileStore.save(saved)
+                                    profile = saved
+                                    interstitialAdManager.showThenNavigate {
+                                        enteredFortune = true
+                                    }
                                 },
                             )
                         } else {
@@ -227,13 +232,25 @@ private fun MoonlitBackground(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun ProfileSetupScreen(existing: UserProfile?, onSave: (UserProfile) -> Unit) {
+private fun ProfileSetupScreen(
+    existing: UserProfile?,
+    onSave: (UserProfile) -> Unit,
+    asEntryGate: Boolean = false,
+) {
     val context = LocalContext.current
     var nickname by remember { mutableStateOf(existing?.nickname.orEmpty()) }
     var birthDate by remember { mutableStateOf(existing?.birthDate) }
     var gender by remember { mutableStateOf(existing?.gender ?: Gender.MALE) }
     var error by remember { mutableStateOf<String?>(null) }
     val formatter = remember { DateTimeFormatter.ofPattern("yyyy년 M월 d일") }
+    val title = when {
+        asEntryGate -> "내 하루에\n따뜻한 빛 한 줄"
+        else -> "내 정보 수정"
+    }
+    val confirmLabel = when {
+        asEntryGate -> "오늘의 운세 보기"
+        else -> "저장하기"
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -253,13 +270,17 @@ private fun ProfileSetupScreen(existing: UserProfile?, onSave: (UserProfile) -> 
             )
             Spacer(Modifier.height(22.dp))
             Text(
-                text = if (existing == null) "내 하루에\n따뜻한 빛 한 줄" else "내 정보 수정",
+                text = title,
                 style = MaterialTheme.typography.displaySmall,
                 color = MoonIvory,
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                text = "생년월일로 오늘의 60갑자를 계산해 나만의 운세를 보여드려요.",
+                text = if (asEntryGate && existing != null) {
+                    "저장된 정보를 확인하고 필요하면 수정한 뒤 오늘의 운세를 보세요."
+                } else {
+                    "생년월일로 오늘의 60갑자를 계산해 나만의 운세를 보여드려요."
+                },
                 style = MaterialTheme.typography.bodyLarge,
                 color = Muted,
             )
@@ -350,7 +371,7 @@ private fun ProfileSetupScreen(existing: UserProfile?, onSave: (UserProfile) -> 
                 shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Amber, contentColor = Midnight),
             ) {
-                Text(if (existing == null) "오늘의 운세 보기" else "저장하기")
+                Text(confirmLabel)
             }
         }
     }
@@ -801,7 +822,7 @@ private fun SettingsScreen(
             }
         }
         item {
-            Text("달빛 운세 1.0.1", color = Muted, style = MaterialTheme.typography.bodyMedium)
+            Text("달빛 운세 1.0.2", color = Muted, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
