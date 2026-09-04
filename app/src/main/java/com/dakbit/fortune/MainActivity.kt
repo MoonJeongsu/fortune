@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
             AlarmScheduler.scheduleNext(this)
         }
 
-        if (intent?.getBooleanExtra(EXTRA_OPEN_TODAY, false) == true) {
+        if (intentRequestsOpenToday(intent)) {
             openTodaySignal++
         }
 
@@ -150,10 +150,18 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        if (intent.getBooleanExtra(EXTRA_OPEN_TODAY, false)) {
+        if (intentRequestsOpenToday(intent)) {
             openTodaySignal++
             intent.removeExtra(EXTRA_OPEN_TODAY)
+            intent.removeExtra(FcmConfig.DATA_OPEN_TODAY)
         }
+    }
+
+    private fun intentRequestsOpenToday(intent: android.content.Intent?): Boolean {
+        if (intent == null) return false
+        if (intent.getBooleanExtra(EXTRA_OPEN_TODAY, false)) return true
+        val openToday = intent.getStringExtra(FcmConfig.DATA_OPEN_TODAY) ?: return false
+        return openToday.equals("true", ignoreCase = true) || openToday == "1"
     }
 }
 
@@ -822,7 +830,7 @@ private fun SettingsScreen(
             }
         }
         item {
-            Text("달빛 운세 1.0.2", color = Muted, style = MaterialTheme.typography.bodyMedium)
+            Text("달빛 운세 1.0.4", color = Muted, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

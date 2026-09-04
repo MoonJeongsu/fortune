@@ -1,0 +1,26 @@
+# AdMob / Google Mobile Ads
+-keep class com.google.android.gms.ads.** { *; }
+-keep class com.google.ads.** { *; }
+-dontwarn com.google.android.gms.ads.**
+
+# Keep Parcelable / Serializable used by ads and system intents
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final ** CREATOR;
+}
+
+# Kotlin / Compose
+-dontwarn kotlin.**
+-keep class kotlin.Metadata { *; }
+
+# App receivers / entry points (already kept by default, reinforce)
+-keep class com.dakbit.fortune.FortuneAlarmReceiver { *; }
+-keep class com.dakbit.fortune.BootReceiver { *; }
+-keep class com.dakbit.fortune.DakbitApp { *; }
+-keep class com.dakbit.fortune.MainActivity { *; }
+-keep class com.dakbit.fortune.FortuneFirebaseMessagingService { *; }
+
+# Firebase Messaging
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**

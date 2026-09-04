@@ -12,3 +12,7 @@ app/release/
 jks_pw.txt
 __pycache__/
 *.pyc
+functions/node_modules/
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
