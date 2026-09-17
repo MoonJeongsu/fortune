@@ -2,6 +2,7 @@
 .gradle/
 .idea/
 local.properties
+app/google-services.json
 build/
 captures/
 .externalNativeBuild/
