@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
 
         val profileStore = ProfileStore(this)
         val engine = FortuneEngine(FortuneDataSource(this))
-        val interstitialAdManager = InterstitialAdManager(this).also { it.preload() }
+        val interstitialAdManager = InterstitialAdManager(this)
 
         setContent {
             val tick = resumeTick

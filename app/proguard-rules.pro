@@ -1,9 +1,16 @@
-# AdMob / Google Mobile Ads
--keep class com.google.android.gms.ads.** { *; }
--keep class com.google.ads.** { *; }
--dontwarn com.google.android.gms.ads.**
+# Cauly SDK
+-keep class com.fsn.cauly.** {
+    public *;
+    protected *;
+}
+-keep class com.trid.tridad.** {
+    public *;
+    protected *;
+}
+-dontwarn android.webkit.**
+-dontwarn com.fsn.cauly.**
 
-# Keep Parcelable / Serializable used by ads and system intents
+# Keep Parcelable / Serializable used by system intents
 -keepclassmembers class * implements android.os.Parcelable {
     public static final ** CREATOR;
 }

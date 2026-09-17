@@ -2,104 +2,91 @@ package com.dakbit.fortune
 
 import android.app.Activity
 import android.content.Context
-import com.google.android.gms.ads.AdError
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.FullScreenContentCallback
-import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.interstitial.InterstitialAd
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import android.os.SystemClock
+import com.fsn.cauly.CaulyAdInfoBuilder
+import com.fsn.cauly.CaulyInterstitialAd
+import com.fsn.cauly.CaulyInterstitialAdListener
 
 /**
- * 탭 선택 시 전면 광고.
- * - Debug: Google 테스트 광고 단위 (쿨다운 없음 — 검증 편의)
- * - Release: 실 광고 ID + 240초 쿨다운
- * 광고 미준비/실패 시 즉시 다음 화면으로 이동.
+ * 카울리 전면 광고. 공식 흐름: 이동 시점에 request → onReceive에서 즉시 show / 아니면 cancel.
+ * 화면 이동은 광고 콜백을 기다리지 않는다.
+ * - Debug: 테스트 AppCode `CAULY`, 쿨다운 없음
+ * - Release: 실 AppCode + 240초 쿨다운
+ * - [ACCEPT_WINDOW_MS] 안에 수신되면 노출, 그 이후·실패·만료는 폐기
  */
 class InterstitialAdManager(
     private val activity: Activity,
-) {
+) : CaulyInterstitialAdListener {
     private val prefs = activity.applicationContext
         .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    private var interstitialAd: InterstitialAd? = null
     private var loading = false
-    private var pendingNavigation: (() -> Unit)? = null
+    private var showing = false
+    private var requestStartedAt = 0L
 
-    fun preload() {
-        if (activity.isFinishing || activity.isDestroyed) return
-        if (loading || interstitialAd != null) return
-
-        loading = true
-        InterstitialAd.load(
-            activity,
-            BuildConfig.ADMOB_INTERSTITIAL_UNIT_ID,
-            AdRequest.Builder().build(),
-            object : InterstitialAdLoadCallback() {
-                override fun onAdLoaded(ad: InterstitialAd) {
-                    loading = false
-                    interstitialAd = ad
-                }
-
-                override fun onAdFailedToLoad(error: LoadAdError) {
-                    loading = false
-                    interstitialAd = null
-                }
-            },
-        )
-    }
-
-    /**
-     * 쿨다운/미로드면 바로 [onNavigate].
-     * 광고를 띄우면 dismiss/실패 후 [onNavigate] 호출.
-     */
     fun showThenNavigate(onNavigate: () -> Unit) {
-        if (!canShow()) {
-            onNavigate()
-            preload()
-            return
-        }
-
-        val ad = interstitialAd
-        if (ad == null) {
-            onNavigate()
-            preload()
-            return
-        }
-
-        interstitialAd = null
-        pendingNavigation = onNavigate
-        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-            override fun onAdShowedFullScreenContent() {
-                recordShown()
-            }
-
-            override fun onAdDismissedFullScreenContent() {
-                finishPendingNavigation()
-                preload()
-            }
-
-            override fun onAdFailedToShowFullScreenContent(error: AdError) {
-                finishPendingNavigation()
-                preload()
-            }
-        }
-        ad.show(activity)
+        onNavigate()
+        if (activity.isFinishing || activity.isDestroyed) return
+        if (!canShow()) return
+        if (loading || showing) return
+        requestAd()
     }
 
-    private fun finishPendingNavigation() {
-        pendingNavigation?.invoke()
-        pendingNavigation = null
+    private fun requestAd() {
+        loading = true
+        requestStartedAt = SystemClock.elapsedRealtime()
+        val adInfo = CaulyAdInfoBuilder(BuildConfig.CAULY_APP_CODE).build()
+        val ad = CaulyInterstitialAd()
+        ad.setAdInfo(adInfo)
+        ad.setInterstialAdListener(this)
+        ad.requestInterstitialAd(activity)
+    }
+
+    override fun onReceiveInterstitialAd(ad: CaulyInterstitialAd, isChargeableAd: Boolean) {
+        loading = false
+        val tooLate = SystemClock.elapsedRealtime() - requestStartedAt > ACCEPT_WINDOW_MS
+        if (tooLate || showing || activity.isFinishing || activity.isDestroyed) {
+            ad.cancel()
+            return
+        }
+        showing = true
+        try {
+            ad.show(activity)
+            recordShown()
+        } catch (_: Exception) {
+            showing = false
+            ad.cancel()
+        }
+    }
+
+    override fun onFailedToReceiveInterstitialAd(
+        ad: CaulyInterstitialAd,
+        errorCode: Int,
+        errorMsg: String,
+    ) {
+        loading = false
+    }
+
+    override fun onClosedInterstitialAd(ad: CaulyInterstitialAd) {
+        showing = false
+    }
+
+    override fun onLeaveInterstitialAd(ad: CaulyInterstitialAd) = Unit
+
+    override fun onClickInterstitialAd(ad: CaulyInterstitialAd) = Unit
+
+    override fun onTimeout(ad: CaulyInterstitialAd, errorMsg: String) {
+        loading = false
+        showing = false
     }
 
     private fun canShow(): Boolean {
-        // Debug는 테스트 광고 — 쿨다운 없이 검증 가능
         if (BuildConfig.DEBUG) return true
 
         val lastShownAt = prefs.getLong(KEY_LAST_SHOWN_AT, 0L)
         if (lastShownAt <= 0L) return true
 
         val elapsed = System.currentTimeMillis() - lastShownAt
-        // 기기 시각이 뒤로 간 경우도 보수적으로 차단
         return elapsed >= COOLDOWN_MS
     }
 
@@ -113,5 +100,6 @@ class InterstitialAdManager(
         private const val PREFS_NAME = "dakbit_ads"
         private const val KEY_LAST_SHOWN_AT = "last_interstitial_shown_at"
         private const val COOLDOWN_MS = 240_000L
+        private const val ACCEPT_WINDOW_MS = 3_000L
     }
 }

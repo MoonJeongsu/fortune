@@ -13,19 +13,13 @@ android {
         applicationId = "com.dakbit.fortune"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "1.0.4"
+        versionCode = 6
+        versionName = "1.0.5"
     }
 
     buildTypes {
         debug {
-            // Google 공식 테스트 ID
-            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
-            buildConfigField(
-                "String",
-                "ADMOB_INTERSTITIAL_UNIT_ID",
-                "\"ca-app-pub-3940256099942544/1033173712\"",
-            )
+            buildConfigField("String", "CAULY_APP_CODE", "\"CAULY\"")
         }
         release {
             isMinifyEnabled = true
@@ -34,13 +28,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            // 실제 AdMob ID (달빛 운세)
-            manifestPlaceholders["admobAppId"] = "ca-app-pub-2337539333759239~6358722846"
-            buildConfigField(
-                "String",
-                "ADMOB_INTERSTITIAL_UNIT_ID",
-                "\"ca-app-pub-2337539333759239/1816842608\"",
-            )
+            buildConfigField("String", "CAULY_APP_CODE", "\"hKFo8djF\"")
         }
     }
 
@@ -75,7 +63,9 @@ dependencies {
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.1")
-    implementation("com.google.android.gms:play-services-ads:24.4.0")
+    implementation("com.google.android.gms:play-services-ads-identifier:17.0.0")
+    implementation("com.google.android.gms:play-services-appset:16.0.0")
+    implementation("com.fsn.cauly:cauly-sdk:3.5.46")
 
     implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
     implementation("com.google.firebase:firebase-messaging")
