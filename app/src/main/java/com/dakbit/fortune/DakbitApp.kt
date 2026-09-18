@@ -8,5 +8,6 @@ class DakbitApp : Application() {
         NotificationHelper.ensureChannel(this)
         NotificationHelper.ensureFcmChannel(this)
         FortuneFirebaseMessagingService.subscribeDailyTopic()
+        InterstitialAdManager.initialize(this)
     }
 }

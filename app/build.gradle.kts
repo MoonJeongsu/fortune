@@ -13,8 +13,12 @@ android {
         applicationId = "com.dakbit.fortune"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.0.5"
+        versionCode = 7
+        versionName = "1.0.6"
+        buildConfigField("String", "PANGLE_APP_ID", "\"8896839\"")
+        buildConfigField("String", "PANGLE_INTERSTITIAL_SLOT_ID", "\"983641203\"")
+        buildConfigField("String", "UNITY_GAME_ID", "\"800374063\"")
+        buildConfigField("String", "UNITY_INTERSTITIAL_PLACEMENT_ID", "\"BP_Interstitial_Android\"")
     }
 
     buildTypes {
@@ -66,6 +70,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-ads-identifier:17.0.0")
     implementation("com.google.android.gms:play-services-appset:16.0.0")
     implementation("com.fsn.cauly:cauly-sdk:3.5.46")
+    implementation("com.pangle.global:pag-sdk:7.9.0.9")
+    implementation("com.unity3d.ads:unity-ads:4.16.6")
 
     implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
     implementation("com.google.firebase:firebase-messaging")

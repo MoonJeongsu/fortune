@@ -10,6 +10,13 @@
 -dontwarn android.webkit.**
 -dontwarn com.fsn.cauly.**
 
+-keep class com.bytedance.sdk.** { *; }
+-keep class com.pangle.global.** { *; }
+-keep class com.unity3d.ads.** { *; }
+-dontwarn com.bytedance.sdk.**
+-dontwarn com.pangle.global.**
+-dontwarn com.unity3d.ads.**
+
 # Keep Parcelable / Serializable used by system intents
 -keepclassmembers class * implements android.os.Parcelable {
     public static final ** CREATOR;
